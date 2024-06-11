@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card mb-5">
+    <h2>Lista plików:</h2>
+    <ul>
+        <?php foreach ($files as $file): ?>
+            <li>
+                <strong>Nazwa oryginalna:</strong> <?= htmlspecialchars($file['original_name']) ?><br>
+                <strong>Opis:</strong> <?= htmlspecialchars($file['description']) ?><br>
+                <strong>Data przesłania:</strong> <?= htmlspecialchars($file['upload_date']) ?><br>
+                <strong><a href="<?= htmlspecialchars($file['path']) ?>">Pobierz plik</a></strong><br>
+            </li>
+        <?php endforeach; ?>
+    </ul></div>
+<div class="card mb-3">
+    <h2>Prześlij pliki</h2>
+    <form action="/" method="post" enctype="multipart/form-data">
+        <label for="file">Wybierz plik:</label>
+        <input type="file" name="file" id="file">
+        <br>
+        <label for="description">Opis:</label>
+        <input type="text" name="description" id="description">
+        <br>
+        <label for="is_public">Czy plik ma być publiczny?</label>
+        <input type="checkbox" name="is_public" id="is_public">
+        <br>
+        <button type="submit">Prześlij</button>
+    </form>
+</div>
+{% endblock %}
