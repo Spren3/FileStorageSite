@@ -5,10 +5,7 @@ $uploadDir = 'uploads/';
 
 try {
     $db = new PDO('sqlite:php.sqlite');
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    echo "Connected to SQLite successfully.";
-    
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); 
     $stmt = $db->query("SELECT * FROM files WHERE is_public = 1");
     $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

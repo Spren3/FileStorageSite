@@ -12,7 +12,7 @@
             </div>
         {% endif %}
 
-        <form action="index.php?page=upload" method="post" enctype="multipart/form-data">
+        <form id="uploadForm" action="index.php?page=upload" method="post" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="file" class="form-label">Wybierz plik:</label>
                 <input type="file" name="file" id="file" class="form-control" required>
@@ -28,7 +28,59 @@
             <button type="submit" class="btn btn-primary">Prześlij</button>
         </form>
 
+        <div id="progressBar" class="progress mt-3" style="display: none;">
+            <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div id="status" class="mt-3"></div>
+
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadForm = document.getElementById('uploadForm');
+    const progressBar = document.querySelector('#progressBar .progress-bar');
+    const progressBarContainer = document.getElementById('progressBar');
+    /* const status = document.getElementById('status');
+ */
+    uploadForm.onsubmit = function(event) {
+        event.preventDefault();
+        let formData = new FormData(uploadForm);
+        let xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener('progress', function(event) {
+            if (event.lengthComputable) {
+                let percentComplete = (event.loaded / event.total) * 100;
+                progressBar.style.width = percentComplete + '%';
+                progressBar.setAttribute('aria-valuenow', percentComplete);
+                progressBarContainer.style.display = 'block';
+            }
+        });
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4) {
+                if (xhr.status == 200) {
+                    progressBar.classList.add('bg-success');
+                    status.innerHTML = 'Upload completed!';
+                    setTimeout(function() {
+                        progressBarContainer.style.display = 'none';
+                    }, 1000); // Hide progress bar after 1 second
+                    setTimeout(function() {
+                        status.innerHTML = '';
+                    }, 5000); // Hide status message after 5 seconds
+                } else {
+                    progressBar.classList.add('bg-danger');
+                    status.innerHTML = 'Upload failed.';
+                }
+            }
+        };
+
+        xhr.open('POST', uploadForm.action, true);
+        xhr.send(formData);
+    };
+});
+</script>
 {% endblock %}
