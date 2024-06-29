@@ -40,12 +40,12 @@ if (isset($_GET['page']) && $_GET['page'] == 'logout') {
     }
 
     session_destroy();
-    header('Location: /public_html/index.php');
+    header('Location: /');
     exit();
 }
 
 
-$allowed_pages = ['main', /*'register'*/];
+$allowed_pages = ['main', 'upload', /*'register'*/];
 
 ///  weryfikacja
 if (
