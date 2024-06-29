@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
             
             echo "Connected to SQLite successfully.";
             
-            $stmt = $db->prepare("INSERT INTO files (original_name, description, upload_date, saved_name, path, is_public) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO files (original_name, description, upload_date, saved_name, path, is_private) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([$originalName, $description, $uploadDate, $savedName, $path, $isPublic]);
 
             $message = 'File uploaded successfully.';
