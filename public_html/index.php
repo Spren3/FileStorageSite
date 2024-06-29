@@ -15,7 +15,7 @@ include("helpers.inc.php"); //tu mamy jakies swoje funkcje albo uproszczenia twi
 
 if (isset($_POST['password'])) {
 
-    if (password_verify($_POST['password'],GLOBAL_PASSWORD_HASH)) {
+    if (password_verify($_POST['password'], GLOBAL_PASSWORD_HASH)) {
         $_SESSION['id'] = generateSessionId();
         TwigHelper::getInstance()->addGlobal('_session', $_SESSION);
         TwigHelper::addMsg('Pomyślnie się zalogowałeś.', 'success');
@@ -26,7 +26,21 @@ if (isset($_POST['password'])) {
 //wylogowanie
 if (isset($_GET['page']) && $_GET['page'] == 'logout') {
     unset($_SESSION['id']);
-    header('Location: /');
+    $_SESSION = array();
+
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+        TwigHelper::addMsg('Pomyślnie wylogowano.', 'success');
+    } else {
+        TwigHelper::addMsg('Wystąpił błąd.', 'error');
+    }
+
+    session_destroy();
+    header('Location: /public_html/index.php');
     exit();
 }
 
@@ -34,7 +48,8 @@ if (isset($_GET['page']) && $_GET['page'] == 'logout') {
 $allowed_pages = ['main', /*'register'*/];
 
 ///  weryfikacja
-if (isset($_GET['page'])
+if (
+    isset($_GET['page'])
     && $_GET['page']
     && in_array($_GET['page'], $allowed_pages)
     && file_exists($_GET['page'] . '.php')
@@ -51,4 +66,3 @@ if (isset($_GET['page'])
     // Renderujemy tylko główny szablon bez podstrony.
     print TwigHelper::getInstance()->render('base.html');
 }
-
