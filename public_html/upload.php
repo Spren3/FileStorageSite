@@ -17,8 +17,13 @@ if (!file_exists($uploadDir)) {
     }
 }
 
+// Maksymalny dopuszczalny rozmiar pliku (w bajtach)
+$maxFileSize = 10 * 1024 * 1024; // np. 10 MB
+
+
 // Handle single file upload
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
+    $fileSize = $_FILES['file']['size'];
     $originalName = $_FILES['file']['name'];
     $description = $_POST['description'];
     $isPublic = isset($_POST['is_public']) ? 1 : 0;
@@ -26,25 +31,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
     $savedName = generateSessionId() . '.' . pathinfo($originalName, PATHINFO_EXTENSION);
     $path = $uploadDir . $savedName;
 
-    // Check if file was successfully uploaded
-    if (move_uploaded_file($_FILES['file']['tmp_name'], $path)) {
-        try {
-            //$db = new PDO('sqlite:php.sqlite');
-            $db = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');
-            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    if ($fileSize > $maxFileSize) {
+        $message = 'File size exceeds the maximum allowed limit.';
+        $messageType = 'error';
+    } else {
+        // Check if file was successfully uploaded
+        if (move_uploaded_file($_FILES['file']['tmp_name'], $path)) {
+            try {
+                //$db = new PDO('sqlite:php.sqlite');
+                $db = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');
+                $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            $stmt = $db->prepare("INSERT INTO files (original_name, description, upload_date, saved_name, path, is_public) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$originalName, $description, $uploadDate, $savedName, $path, $isPublic]);
+                $stmt = $db->prepare("INSERT INTO files (original_name, description, upload_date, saved_name, path, is_public) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$originalName, $description, $uploadDate, $savedName, $path, $isPublic]);
 
-            $message = 'File uploaded successfully.';
-            $messageType = 'success';
-        } catch (PDOException $e) {
-            $message = 'Database error: ' . $e->getMessage();
+                $message = 'File uploaded successfully.';
+                $messageType = 'success';
+
+            } catch (PDOException $e) {
+                $message = 'Database error: ' . $e->getMessage();
+                $messageType = 'error';
+            }
+        } else {
+            $message = 'Error uploading file.';
             $messageType = 'error';
         }
-    } else {
-        $message = 'Error uploading file.';
-        $messageType = 'error';
     }
 }
 
