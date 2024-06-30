@@ -45,7 +45,7 @@ if (isset($_GET['page']) && $_GET['page'] == 'logout') {
 }
 
 
-$allowed_pages = ['main', 'upload', /*'register'*/];
+$allowed_pages = ['main', 'upload', 'edit', /*'register'*/];
 
 ///  weryfikacja
 if (

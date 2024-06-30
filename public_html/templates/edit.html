@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <h2>Edytuj plik: {{ file.original_name }}</h2>
+    <form method="post" action="index.php?edit={{ file.id }}">
+        <input type="hidden" name="file_id" value="{{ file.id }}">
+        <div>
+            <label for="description">Opis:</label><br>
+            <textarea id="description" name="description">{{ description }}</textarea>
+        </div>
+        <div>
+            <label for="is_public">
+                <input type="checkbox" id="is_public" name="is_public" value="1" {% if is_public == 1 %}checked{% endif %}>
+                Udostępnij publicznie
+            </label>
+        </div>
+        <div>
+            <button type="submit">Zapisz zmiany</button>
+        </div>
+    </form>
+
+{% endblock %}
