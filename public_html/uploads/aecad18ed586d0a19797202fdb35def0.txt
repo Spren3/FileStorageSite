@@ -1,0 +1,32 @@
+%CD -> DAB z 44100 Hz -> 48000 Hz
+%zast f. resample i zrob to recznie
+%nadprobkowac 160 razy a potem podprobkowac 147 
+
+% Wczytanie nagrania z płyty CD
+[x, fs_original] = audioread('DontWorryBeHappy.wav');
+
+% Częstotliwość próbkowania dla DAB
+fs_dab = 48000;
+
+%% Konwersja przy użyciu funkcji resample
+% Przekonwertowanie przy użyciu funkcji resample
+y_resampled = resample(x, fs_dab, fs_original);
+
+% Odtworzenie nagrania oryginalnego i przekonwertowanego
+%sound(x, fs_original);
+%pause(length(x) / fs_original); % Pauza na czas odtwarzania oryginalnego nagrania
+%sound(y_resampled, fs_dab);
+
+%% Konwersja własnoręczna
+% Nad-próbkowanie sygnału 160 razy (ekspander + filtr LP)
+x_expanded = kron(x, ones(160, 1)); % Ekspander
+filter_lp = fir1(100, 1/160); % Filtr LP
+x_expanded_filtered = filter(filter_lp, 1, x_expanded);
+
+% Pod-próbkowanie sygnału 147 razy (filtr LP + reduktor)
+filter_lp2 = fir1(100, 1/147); % Filtr LP
+y_resampled_manual = filter(filter_lp2, 1, x_expanded_filtered);
+y_resampled_manual = downsample(y_resampled_manual, 147); % Reduktor
+
+% Odtworzenie nagrania przekonwertowanego własnoręcznie
+sound(y_resampled_manual, fs_dab);

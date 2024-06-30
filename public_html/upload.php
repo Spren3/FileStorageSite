@@ -29,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
     // Check if file was successfully uploaded
     if (move_uploaded_file($_FILES['file']['tmp_name'], $path)) {
         try {
-            $db = new PDO('sqlite:php.sqlite');
+            //$db = new PDO('sqlite:php.sqlite');
+            $db = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');
             $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             $stmt = $db->prepare("INSERT INTO files (original_name, description, upload_date, saved_name, path, is_public) VALUES (?, ?, ?, ?, ?, ?)");

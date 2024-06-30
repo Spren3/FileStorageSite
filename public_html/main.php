@@ -4,7 +4,8 @@ if (!defined('IN_INDEX')) { exit("This file can only be included in index.php.")
 $uploadDir = 'uploads/';
 
 try {
-    $db = new PDO('sqlite:php.sqlite');
+    //$db = new PDO('sqlite:php.sqlite');
+    $db = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); 
     $stmt = $db->query("SELECT * FROM files WHERE is_public = 1");
     $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -16,5 +17,3 @@ try {
 print TwigHelper::getInstance()->render('main.html', [
     'files' => $files ?? []
 ]);
-
-
