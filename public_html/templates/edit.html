@@ -1,23 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-    <h2>Edytuj plik: {{ file.original_name }}</h2>
-    <form method="post" action="index.php?edit={{ file.id }}">
-        <input type="hidden" name="file_id" value="{{ file.id }}">
-        <div>
-            <label for="description">Opis:</label><br>
-            <textarea id="description" name="description">{{ description }}</textarea>
+    <h2>Edytuj plik: {{ original_name }}</h2>
+    {% if message %}
+        <div class="alert alert-{{ messageType }}" role="alert">
+            {{ message }}
         </div>
-        <div>
-            <label for="is_public">
-                <input type="checkbox" id="is_public" name="is_public" value="1" {% if is_public == 1 %}checked{% endif %}>
-                Udostępnij publicznie
-            </label>
+    {% endif %}
+    <form method="post" action="index.php?page=edit">
+        <input type="hidden" name="file_id" value="{{ file_id }}">
+        <div class="mb-3">
+            <label for="original_name" class="form-label">Nazwa pliku:</label>
+            <input type="text" id="original_name" name="original_name" class="form-control" value="{{ original_name }}" required>
         </div>
-        <div>
-            <button type="submit">Zapisz zmiany</button>
+        <div class="mb-3">
+            <label for="description" class="form-label">Opis:</label>
+            <textarea id="description" name="description" class="form-control">{{ description }}</textarea>
         </div>
+        <div class="form-check mb-3">
+            <input type="checkbox" id="is_public" name="is_public" class="form-check-input" {% if is_public == 1 %}checked{% endif %}>
+            <label for="is_public" class="form-check-label">Udostępnij publicznie</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
     </form>
-
+    <form method="post" action="index.php?page=edit" class="mt-3">
+        <input type="hidden" name="file_id" value="{{ file_id }}">
+        <input type="hidden" name="delete" value="1">
+        <button type="submit" class="btn btn-danger">Usuń plik</button>
+    </form>
 {% endblock %}
