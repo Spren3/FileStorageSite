@@ -2,34 +2,87 @@
 
 {% block content %}
 
+{% if is_logged_in %}
 <div class="card mb-3">
-  
     <div class="card-body">
         <h2 class="card-title">Publiczne pliki</h2>
 
-        {% if files %}
+        {% if files|length > 0 %}
         <ul class="list-group">
             {% for file in files %}
-            <li class="list-group-item">
-                <a href="{{ file.path }}" target="_blank">{{ file.original_name }}</a>
-                {% if file.description %}
-                <p>Opis: {{ file.description }}</p>
-                {% endif %}
-                {% if _session.id %}
-                    <a href="index.php?edit={{ file.id }}">
-                        <button class="btn btn-sm btn-primary">Edit</button>
+                {% if file.is_public %}
+                <li class="list-group-item">
+                    <a href="{{ file.path }}" target="_blank">{{ file.original_name }}</a>
+                    {% if file.description %}
+                    <p>Opis: {{ file.description }}</p>
+                    {% endif %}
+                    <a href="index.php?page=edit&edit={{ file.id }}">
+                        <button class="btn btn-sm btn-primary">Edytuj</button>
                     </a>
+                    <br>
+                    <small class="text-muted">Wgrano: {{ file.upload_date }}</small>
+                </li>
                 {% endif %}
-                <br>
-                <small class="text-muted">Wgrano: {{ file.upload_date }}</small>
-            </li>
             {% endfor %}
         </ul>
         {% else %}
         <p>Brak publicznych plików do wyświetlenia.</p>
         {% endif %}
-
     </div>
 </div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h2 class="card-title">Prywatne pliki</h2>
+
+        {% if files|length > 0 %}
+        <ul class="list-group">
+            {% for file in files %}
+                {% if not file.is_public %}
+                <li class="list-group-item">
+                    <a href="{{ file.path }}" target="_blank">{{ file.original_name }}</a>
+                    {% if file.description %}
+                    <p>Opis: {{ file.description }}</p>
+                    {% endif %}
+                    <a href="index.php?page=edit&edit={{ file.id }}">
+                        <button class="btn btn-sm btn-primary">Edytuj</button>
+                    </a>
+                    <br>
+                    <small class="text-muted">Wgrano: {{ file.upload_date }}</small>
+                </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>Brak prywatnych plików do wyświetlenia.</p>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h2 class="card-title">Publiczne pliki</h2>
+
+        {% if files|length > 0 %}
+        <ul class="list-group">
+            {% for file in files %}
+                {% if file.is_public %}
+                <li class="list-group-item">
+                    <a href="{{ file.path }}" target="_blank">{{ file.original_name }}</a>
+                    {% if file.description %}
+                    <p>Opis: {{ file.description }}</p>
+                    {% endif %}
+                    <br>
+                    <small class="text-muted">Wgrano: {{ file.upload_date }}</small>
+                </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>Brak publicznych plików do wyświetlenia.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 
 {% endblock %}
