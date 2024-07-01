@@ -6,6 +6,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 $db = new PDO('sqlite:D:\GitHub Desktop\FileStorageSite\instance\php.sqlite');
+//$db = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -32,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($stmt->execute()) {
                 $message = 'File deleted successfully.';
                 $messageType = 'success';
+                header("Location: /");
             } else {
                 $message = 'Error deleting file from database.';
                 $messageType = 'error';
@@ -66,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $message = 'Error updating file.';
             $messageType = 'error';
         }
-
+        header("Location: /");
         print TwigHelper::getInstance()->render('edit.html', [
             'message' => $message,
             'messageType' => $messageType,

@@ -6,9 +6,10 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 $db = new PDO('sqlite:D:\GitHub Desktop\FileStorageSite\instance\php.sqlite');
+//$db = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-session_start();
+//session_start();
 
 $is_logged_in = isset($_SESSION['id']);
 
