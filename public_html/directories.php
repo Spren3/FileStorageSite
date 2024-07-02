@@ -15,6 +15,10 @@ function connectToDatabase()
 // Funkcja do dodawania nowego katalogu
 function addDirectory($pdo, $name, $parent_id = null)
 {
+    if ($parent_id === '') {
+        $parent_id = null; // Ustawienie na NULL, jeśli $parent_id jest pusty (brak wartości w formularzu)
+    }
+
     $stmt = $pdo->prepare("INSERT INTO directories (name, parent_id) VALUES (?, ?)");
     $stmt->execute([$name, $parent_id]);
 }
@@ -31,12 +35,11 @@ function getDirectories($pdo, $parent_id = null)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Funkcja do pobierania listy podkatalogów
-function getSubdirectories($pdo, $parent_id)
+// Funkcja do usuwania katalogu
+function deleteDirectory($pdo, $directory_id)
 {
-    $stmt = $pdo->prepare("SELECT * FROM directories WHERE parent_id = ?");
-    $stmt->execute([$parent_id]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare("DELETE FROM directories WHERE id = ?");
+    $stmt->execute([$directory_id]);
 }
 
 // Obsługa żądań AJAX
@@ -45,7 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'add_directory' && !empty($_POST['directory_name'])) {
         $directoryName = $_POST['directory_name'];
-        $parent_id = $_POST['directory_id'] ?? null;
+        $parent_id = $_POST['parent_id'] ?? null;
+        //$parent_id = isset($_GET['directory_id']) && !empty($_GET['directory_id']) ? $_GET['directory_id'] : null;
 
         try {
             $pdo = connectToDatabase();
@@ -55,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
         }
     } elseif ($action === 'get_directories') {
-        $parent_id = $_POST['parent_id'] ?? null;
+        $parent_id = $_POST['directory_id'] ?? null;
         try {
             $pdo = connectToDatabase();
             $directories = getDirectories($pdo, $parent_id);
@@ -64,20 +68,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
         }
-    } elseif ($action === 'get_subdirectories') {
-        $parent_id = $_POST['parent_id'] ?? null;
+    } elseif ($action === 'delete_directory') {
+        $directory_id = $_POST['directory_id'];
         try {
             $pdo = connectToDatabase();
-            $subdirectories = getSubdirectories($pdo, $parent_id);
-            echo json_encode(['success' => true, 'subdirectories' => $subdirectories]);
+            deleteDirectory($pdo, $directory_id);
+            echo json_encode(['success' => true]);
 
         } catch (PDOException $e) {
             echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
         }
-    } else {
-        echo json_encode(['success' => false, 'error' => 'Nieznane żądanie']);
     }
-    exit();
+   exit(); 
 }
 
 // Pobieranie listy katalogów na potrzeby renderowania strony
@@ -94,4 +96,3 @@ print TwigHelper::getInstance()->render('directories.html', [
     'directories' => $directories,
     'parent_id' => $parent_id
 ]);
-
