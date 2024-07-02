@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'add_directory' && !empty($_POST['directory_name'])) {
         $directoryName = $_POST['directory_name'];
-        $parent_id = $_POST['parent_id'] ?? null;
+        $parent_id = $_POST['directory_id'] ?? null;
 
         try {
             $pdo = connectToDatabase();
@@ -81,7 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Pobieranie listy katalogów na potrzeby renderowania strony
-$parent_id = $_GET['parent_id'] ?? null;
+$parent_id = isset($_GET['directory_id']) && !empty($_GET['directory_id']) ? $_GET['directory_id'] : null;
+
 try {
     $pdo = connectToDatabase();
     $directories = getDirectories($pdo, $parent_id);
