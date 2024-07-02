@@ -10,20 +10,14 @@ error_reporting(E_ALL);
 
 $uploadDir = 'uploads/';
 
-
-
-// Create directory if it does not exist
 if (!file_exists($uploadDir)) {
     if (!mkdir($uploadDir, 0777, true)) {
         die("Failed to create directory: $uploadDir");
     }
 }
 
-// Maksymalny dopuszczalny rozmiar pliku (w bajtach)
-$maxFileSize = 10 * 1024 * 1024; // np. 10 MB
+$maxFileSize = 10 * 1024 * 1024; // 10 MB
 
-
-// Handle single file upload
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
     $fileSize = $_FILES['file']['size'];
     $originalName = $_FILES['file']['name'];
@@ -37,10 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
         $message = 'File size exceeds the maximum allowed limit.';
         $messageType = 'error';
     } else {
-        // Check if file was successfully uploaded
         if (move_uploaded_file($_FILES['file']['tmp_name'], $path)) {
             try {
-                //$db = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');
+                //$db = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');                
                 $db = new PDO('sqlite:D:\GitHub Desktop\FileStorageSite\instance\php.sqlite');
                 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -60,7 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
     }
 }
 
-// Render upload.html template with message
 print TwigHelper::getInstance()->render('upload.html', [
     'message' => $message ?? null,
     'messageType' => $messageType ?? null,

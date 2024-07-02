@@ -5,11 +5,6 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 
-// Sprawdzenie, czy plik został określony
-if (!isset($_GET['file_id'])) {
-    die("Nie określono pliku do pobrania.");
-}
-
 $fileId = $_GET['file_id'];
 
 try {
@@ -26,19 +21,18 @@ try {
         die("Plik nie istnieje.");
     }
 
+    $filePath = 'uploads/' . $file['saved_name'];
+    // Sprawdzenie, czy plik fizycznie istnieje
+   if (!file_exists($filePath)) {
+       die("Plik nie istnieje na serwerze.");
+   }
+
     // Sprawdzenie uprawnień użytkownika
     if (!$file['is_public'] && !isset($_SESSION['id'])) {
         die("Nie masz uprawnień do pobrania tego pliku.");
     } elseif (!$file['is_public'] && isset($_SESSION['logged_in'])) {
         echo "Masz uprawnienia jako zalogowany użytkownik.";
-        download($file, $db);
-    }
-
-    $filePath = 'uploads/' . $file['saved_name']; // Upewnij się, że ścieżka jest poprawna i pliki są przechowywane poza publicznym katalogiem
-
-    // Sprawdzenie, czy plik fizycznie istnieje
-    if (!file_exists($filePath)) {
-        die("Plik nie istnieje na serwerze.");
+        download($file, $db, $filePath);
     }
 
     // Ustawienie odpowiednich nagłówków HTTP i wysłanie pliku
@@ -57,9 +51,9 @@ try {
     die("Błąd bazy danych: " . $e->getMessage());
 }
 
-function download($file, $db) {
-    $filePath = 'uploads/' . $file['saved_name']; // Upewnij się, że ścieżka jest poprawna i pliki są przechowywane poza publicznym katalogiem
-
+function download($file, $db, $filePath) {
+    //$filePath = 'uploads/' . $file['saved_name']; // Upewnij się, że ścieżka jest poprawna i pliki są przechowywane poza publicznym katalogiem
+    $filepath = $file['path'];
     // Ustawienie odpowiednich nagłówków HTTP i wysłanie pliku
     header('Content-Description: File Transfer');
     header('Content-Type: application/octet-stream');

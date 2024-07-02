@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-
 <div class="container mt-5">
     <div class="card">
         <div class="card-body">
@@ -12,96 +11,77 @@
                 <div class="form-group">
                     <label for="directory_name">Nazwa nowego katalogu:</label>
                     <input type="text" id="directory_name" name="directory_name" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="parent_id">Rodzic (opcjonalnie):</label>
-                    <select name="parent_id" id="parent_id" class="form-control">
-                        <option value="">Brak rodzica</option>
-                        {% for directory in directories %}
-                            <option value="{{ directory.id }}">{{ directory.name }}</option>
-                        {% endfor %}
-                    </select>
+                    <input type="hidden" id="parent_id" name="parent_id" value="{{ parent_id }}">
                 </div>
                 <button type="submit" class="btn btn-primary">Dodaj katalog</button>
             </form>
-
+            
             <hr>
 
             <!-- Lista istniejących katalogów -->
             <h3>Lista istniejących katalogów:</h3>
             <ul id="directoryList">
                 {% for directory in directories %}
-                    <li><a href="#" class="directory-link" data-directory-id="{{ directory.id }}">{{ directory.name }}</a></li>
+                <li>
+                    <a href="#" class="directory-link" data-directory-id="{{ directory.id }}">
+                        {{ directory.name }}
+                    </a>
+                </li>
                 {% endfor %}
             </ul>
 
         </div>
     </div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script>
-    // Obsługa formularza dodawania katalogu za pomocą AJAX
     document.getElementById('addDirectoryForm').addEventListener('submit', function(event) {
         event.preventDefault();
-
-        // Pobierz dane z formularza
+    
         var formData = new FormData(this);
         formData.append('action', 'add_directory');
-
-        // Wyślij żądanie AJAX do dodania katalogu
-        fetch('index.php?page=directories', {
+    
+        fetch('directories.php', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Zaktualizuj listę katalogów po dodaniu
-                updateDirectoryList();
-                // Wyczyść formularz
-                document.getElementById('addDirectoryForm').reset();
+                updateDirectoryList(); // Aktualizacja listy po dodaniu
+                document.getElementById('addDirectoryForm').reset(); // Resetowanie formularza
             } else {
                 console.error('Błąd:', data.error);
             }
         })
         .catch(error => console.error('Błąd:', error));
     });
+    
 
-    // Funkcja do aktualizacji listy katalogów
     function updateDirectoryList() {
         var formData = new FormData();
         formData.append('action', 'get_directories');
 
-        fetch('index.php?page=directories', {
+        fetch('directories.php', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Zaktualizuj widok listy katalogów
                 var directoryList = document.getElementById('directoryList');
-                directoryList.innerHTML = '';
+                directoryList.innerHTML = ''; // Wyczyszczenie listy przed aktualizacją
                 data.directories.forEach(directory => {
                     var li = document.createElement('li');
                     var a = document.createElement('a');
-                    a.href = '#';
+                    a.href = "index.php?page=directories&directory_id=" + directory.id; // Tutaj dodajemy ID katalogu
                     a.className = 'directory-link';
-                    a.setAttribute('data-directory-id', directory.id);
                     a.textContent = directory.name;
                     li.appendChild(a);
-                    directoryList.appendChild(li);
+                    directoryList.appendChild(li); // Dodanie nowego elementu do listy
                 });
-
-                // Dodaj obsługę kliknięcia na link do katalogu
-                document.querySelectorAll('.directory-link').forEach(link => {
-                    link.addEventListener('click', function(event) {
-                        event.preventDefault();
-                        var directoryId = this.getAttribute('data-directory-id');
-                        goToDirectory(directoryId);
-                    });
-                });
-
             } else {
                 console.error('Błąd:', data.error);
             }
@@ -109,51 +89,55 @@
         .catch(error => console.error('Błąd:', error));
     }
 
-    // Funkcja do przejścia do wybranego katalogu
-    function goToDirectory(directoryId) {
-        var formData = new FormData();
-        formData.append('action', 'get_directories');
-        formData.append('parent_id', directoryId);
-
-        fetch('index.php?page=directories', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Zaktualizuj widok listy katalogów
-                var directoryList = document.getElementById('directoryList');
-                directoryList.innerHTML = '';
-                data.directories.forEach(directory => {
-                    var li = document.createElement('li');
-                    var a = document.createElement('a');
-                    a.href = '#';
-                    a.className = 'directory-link';
-                    a.setAttribute('data-directory-id', directory.id);
-                    a.textContent = directory.name;
-                    li.appendChild(a);
-                    directoryList.appendChild(li);
-                });
-
-                // Dodaj obsługę kliknięcia na link do katalogu
-                document.querySelectorAll('.directory-link').forEach(link => {
-                    link.addEventListener('click', function(event) {
-                        event.preventDefault();
-                        var directoryId = this.getAttribute('data-directory-id');
-                        goToDirectory(directoryId);
-                    });
-                });
-
-            } else {
-                console.error('Błąd:', data.error);
-            }
-        })
-        .catch(error => console.error('Błąd:', error));
-    }
-
-    // Wywołaj funkcję aktualizacji listy katalogów przy ładowaniu strony
+    // Wywołanie funkcji updateDirectoryList() na start, aby załadować listę katalogów
     updateDirectoryList();
 </script>
+
+<script>
+
+
+        /*
+    function fetchSubdirectories(parentId) {
+        var formData = new FormData();
+        formData.append('action', 'get_subdirectories');
+        formData.append('parent_id', parentId);
+
+        fetch('directories.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var subdirectoryList = document.createElement('ul');
+                subdirectoryList.className = 'subdirectory-list';
+                data.subdirectories.forEach(subdirectory => {
+                    var subLi = document.createElement('li');
+                    var subA = document.createElement('a');
+                    subA.href = "index.php?page=directories&directory_id=" + directory.parent_id; // Tutaj dodajemy ID katalogu
+                    subA.textContent = subdirectory.name;
+                    subLi.appendChild(subA);
+                    subdirectoryList.appendChild(subLi);
+                });
+
+                // Usuń istniejącą listę podkatalogów, jeśli istnieje
+                var directoryItem = document.querySelector('a[data-directory-id="' + parentId + '"]');
+                var existingSubdirectoryList = directoryItem.nextSibling;
+                if (existingSubdirectoryList && existingSubdirectoryList.classList.contains('subdirectory-list')) {
+                    existingSubdirectoryList.remove();
+                }
+
+                // Dodaj nową listę podkatalogów pod wybrany katalog
+                directoryItem.parentNode.insertBefore(subdirectoryList, directoryItem.nextSibling);
+            } else {
+                console.error('Błąd:', data.error);
+            }
+        })
+        .catch(error => console.error('Błąd:', error));
+    }
+        */
+    updateDirectoryList();
+</script>
+
 
 {% endblock %}

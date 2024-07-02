@@ -9,3 +9,6 @@ RewriteRule ^([a-zA-Z0-9-_]+)\/edit\/([0-9]+)$ index.php?page=$1&edit=$2 [NC,L,Q
 
 Options -Indexes
 Deny from all
+
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule !.*\.php$ %{REQUEST_FILENAME}.php [QSA,L]

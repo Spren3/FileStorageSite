@@ -3,12 +3,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-require_once 'vendor/autoload.php'; // Ścieżka do autoloadera Twig
-
-use Twig\Environment;
-use Twig\Loader\FilesystemLoader;
-
-// Funkcja do połączenia z bazą danych SQLite
+// Połączenie z bazą danych SQLite
 function connectToDatabase()
 {
     //$pdo = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');
@@ -18,64 +13,84 @@ function connectToDatabase()
 }
 
 // Funkcja do dodawania nowego katalogu
-function addDirectory($pdo, $name, $parentId = null)
+function addDirectory($pdo, $name, $parent_id = null)
 {
     $stmt = $pdo->prepare("INSERT INTO directories (name, parent_id) VALUES (?, ?)");
-    $stmt->execute([$name, $parentId]);
+    $stmt->execute([$name, $parent_id]);
 }
 
 // Funkcja do pobierania listy katalogów
-function getDirectories($pdo, $parentId = null)
+function getDirectories($pdo, $parent_id = null)
 {
-    if ($parentId === null) {
+    if ($parent_id === null) {
         $stmt = $pdo->query("SELECT * FROM directories WHERE parent_id IS NULL");
     } else {
         $stmt = $pdo->prepare("SELECT * FROM directories WHERE parent_id = ?");
-        $stmt->execute([$parentId]);
+        $stmt->execute([$parent_id]);
     }
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Obsługa żądań POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action'])) {
-        if ($_POST['action'] === 'add_directory') {
-            if (isset($_POST['directory_name']) && !empty($_POST['directory_name'])) {
-                $directoryName = $_POST['directory_name'];
-                $parentId = $_POST['parent_id'] ?? null;
-
-                try {
-                    $pdo = connectToDatabase();
-                    addDirectory($pdo, $directoryName, $parentId);
-                    echo json_encode(['success' => true]);
-                    exit();
-                } catch (PDOException $e) {
-                    echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
-                    exit();
-                }
-            }
-        } elseif ($_POST['action'] === 'get_directories') {
-            try {
-                $pdo = connectToDatabase();
-                $directories = getDirectories($pdo);
-                echo json_encode(['success' => true, 'directories' => $directories]);
-                exit();
-            } catch (PDOException $e) {
-                echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
-                exit();
-            }
-        }
-    }
+// Funkcja do pobierania listy podkatalogów
+function getSubdirectories($pdo, $parent_id)
+{
+    $stmt = $pdo->prepare("SELECT * FROM directories WHERE parent_id = ?");
+    $stmt->execute([$parent_id]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Pobranie listy katalogów głównych
+// Obsługa żądań AJAX
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'];
+
+    if ($action === 'add_directory' && !empty($_POST['directory_name'])) {
+        $directoryName = $_POST['directory_name'];
+        $parent_id = $_POST['parent_id'] ?? null;
+
+        try {
+            $pdo = connectToDatabase();
+            addDirectory($pdo, $directoryName, $parent_id);
+            echo json_encode(['success' => true]);
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
+        }
+    } elseif ($action === 'get_directories') {
+        $parent_id = $_POST['parent_id'] ?? null;
+        try {
+            $pdo = connectToDatabase();
+            $directories = getDirectories($pdo, $parent_id);
+            echo json_encode(['success' => true, 'directories' => $directories]);
+
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
+        }
+    } elseif ($action === 'get_subdirectories') {
+        $parent_id = $_POST['parent_id'] ?? null;
+        try {
+            $pdo = connectToDatabase();
+            $subdirectories = getSubdirectories($pdo, $parent_id);
+            echo json_encode(['success' => true, 'subdirectories' => $subdirectories]);
+
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
+        }
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Nieznane żądanie']);
+    }
+    exit();
+}
+
+// Pobieranie listy katalogów na potrzeby renderowania strony
+$parent_id = $_GET['parent_id'] ?? null;
 try {
     $pdo = connectToDatabase();
-    $directories = getDirectories($pdo);
+    $directories = getDirectories($pdo, $parent_id);
 } catch (PDOException $e) {
     die("Błąd bazy danych: " . $e->getMessage());
 }
 
 print TwigHelper::getInstance()->render('directories.html', [
-    'directories' => $directories
+    'directories' => $directories,
+    'parent_id' => $parent_id
 ]);
+
