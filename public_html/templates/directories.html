@@ -8,7 +8,9 @@
 
             <!-- Przycisk do przewijania do góry -->
              {% if parent_id is not null %}
-                <button class="btn btn-secondary mb-3" id="scrollToTopBtn">Przewiń do góry</button>
+                <a href="index.php?page=directories&directory_id={{ direction }}">
+                    <button class="btn btn-sm btn-primary">Up</button>
+                </a>
             {% endif %}
 
             <!-- Formularz dodawania nowego katalogu -->
@@ -20,10 +22,11 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Dodaj katalog</button>
             </form>
-
-            <button id="redirectToDirectories" class="btn btn-secondary">
-                Przejdź do katalogów
-            </button>
+            {% if parent_id is not null %}
+                <button id="redirectToDirectories" class="btn btn-secondary">
+                    Przejdź do katalogów
+                </button>
+            {% endif %}
             <hr>
         </div>
         <div class="card-body">
@@ -31,27 +34,25 @@
             <h3>Lista katalogów:</h3>
             <ul id="directoryList">
                 {% for directory in directories %}
-                {% if directory.parent_id is null %}
-                    {# Wyświetlamy katalogi główne, gdzie parent_id jest null #}
-                    <li>
-                        <a href="index.php?page=directories&directory_id={{ directory.id }}" class="directory-link" data-directory-id="{{ directory.id }}">
-                            {{ directory.name }}
-                            {#<input type="hidden" id="direction" value={{ directory.parent_id }}>#}
-                        </a>
-                        <button class="btn btn-danger btn-sm delete-directory" data-directory-id="{{ directory.id }}">Usuń</button>
+                    {% if directory.parent_id is null %}
+                        {# Wyświetlamy katalogi główne, gdzie parent_id jest null #}
+                        <li>
+                            <a href="index.php?page=directories&directory_id={{ directory.id }}" class="directory-link" data-directory-id="{{ directory.id }}">
+                                {{ directory.name }}
+                            </a>
+                            <button class="btn btn-danger btn-sm delete-directory" data-directory-id="{{ directory.id }}">Usuń</button>
                 
-                    </li>
-                {% else %}
-                    {# Wyświetlamy podkatalogi, gdzie parent_id jest równy określonemu parent_id #}
-                    <li>
-                        <a href="index.php?page=directories&directory_id={{ directory.id }}" class="directory-link" data-directory-id="{{ directory.id }}" >
-                            {{ directory.name }}
-                            <input type="hidden" id="direction" value={{ directory.parent_id }}>
-                        </a>
-                        <button class="btn btn-danger btn-sm delete-directory" data-directory-id="{{ directory.id }}">Usuń</button>
-                    </li>
-                {% endif %}  
-            {% endfor %}
+                        </li>
+                    {% else %}
+                        {# Wyświetlamy podkatalogi, gdzie parent_id jest równy określonemu parent_id #}
+                        <li>
+                            <a href="index.php?page=directories&directory_id={{ directory.id }}" class="directory-link me-2" data-directory-id="{{ directory.id }}" >
+                                {{ directory.name }}
+                            </a>
+                            <button class="btn btn-danger btn-sm delete-directory" data-directory-id="{{ directory.id }}">Usuń</button>
+                        </li>
+                    {% endif %}  
+                {% endfor %}
             </ul>
         </div>
         <div class="card-body">
@@ -63,7 +64,7 @@
                     </li>
                 </button>
             <ul id="fileList">
-                {% for file in files %}
+            {% for file in files %}
                 <li class="list-group-item">
                     <a href="{{ file.path }}" target="_blank">{{ file.original_name }}</a>
                     {% if file.description %}
@@ -78,13 +79,9 @@
                     <br>
                     <small class="text-muted">Wgrano: {{ file.upload_date }}</small>
                 </li>
-                
             {% endfor %}
-
             </ul>
-        
         </div>
-
     </div>
 </div>
 {% endblock %}
@@ -105,17 +102,7 @@
         }
 
     });
-    document.getElementById('scrollToTopBtn').addEventListener('click', function(){
-         // Pobierz wartość parent_id z ukrytego pola direction
-        var parentId = document.getElementById('direction').value;
     
-        // Przekieruj użytkownika do nadkatalogu z odpowiednim parent_id
-        window.location.href = 'index.php?page=directories&directory_id=' + parentId;
-    }); 
-
-    
-
-
     document.getElementById('addDirectoryForm').addEventListener('submit', function(event) {
         event.preventDefault(); // Poprawne użycie nawiasu po event.preventDefault()
     
@@ -171,13 +158,6 @@
                     hiddenParentId.id = 'parent_id';
                     hiddenParentId.name = 'parent_id';
                     hiddenParentId.value = directory.parent_id; // Ustawienie wartości parent_id
-
-                    var li = document.createElement('li');
-                    var a = document.createElement('a');
-                    //a.href = "index.php?page=upload&directory_id=" + directory.id; // Tutaj dodajemy ID katalogu
-                    //a.className = 'directory-link';
-                   // a.textContent = directory.name;
-
 
                     var deleteButton = document.createElement('button');
                     deleteButton.className = 'btn btn-danger btn-sm delete-directory';

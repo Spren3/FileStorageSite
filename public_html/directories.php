@@ -60,6 +60,16 @@ function getFiles($pdo, $directory_id)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// Funkcja do pobierania ID katalogu nadrzędnego
+function getParentDirectoryId($pdo, $directory_id)
+{
+    $stmt = $pdo->prepare("SELECT parent_id FROM directories WHERE id = ?");
+    $stmt->execute([$directory_id]);
+    $parent_idTHIS = $stmt->fetchColumn();
+    return $parent_idTHIS;
+}
+
+
 // Obsługa żądań AJAX
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'];
@@ -123,8 +133,15 @@ try {
     die("Błąd bazy danych: " . $e->getMessage());
 }
 
+// Przykład użycia funkcji getParentDirectoryId
+foreach ($directories as &$directory) {
+    $directory['parent_directory_id'] = getParentDirectoryId($pdo, $directory['id']);
+}
+
 print TwigHelper::getInstance()->render('directories.html', [
     'directories' => $directories,
     'parent_id' => $parent_id,
-    'files' => $files // Przekazanie listy plików do szablonu Twig
+    'files' => $files, // Przekazanie listy plików do szablonu Twig
+    'direction' => getParentDirectoryId($pdo, $parent_id)
+
 ]);
