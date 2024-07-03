@@ -6,80 +6,58 @@
         <div class="card-body">
             <h2 class="card-title">Zarządzanie katalogami</h2>
 
-            <!-- Przycisk do przewijania do góry -->
-             {% if parent_id is not null %}
-                <a href="index.php?page=directories&directory_id={{ direction }}">
+            {% if parent_id is not null %}
+                <a href="index.php?page=directories&directory_id={{ parent_id }}">
                     <button class="btn btn-sm btn-primary">Up</button>
                 </a>
             {% endif %}
 
-            <!-- Formularz dodawania nowego katalogu -->
             <form id="addDirectoryForm">
                 <div class="form-group">
                     <label for="directory_name">Nazwa nowego katalogu:</label>
                     <input type="text" id="directory_name" name="directory_name" class="form-control" required>
-                    <input type="hidden" id="parent_id" name="parent_id" value="{{ parent_id  }}" || "" >
+                    <input type="hidden" id="parent_id" name="parent_id" value="{{ parent_id }}">
                 </div>
                 <button type="submit" class="btn btn-primary">Dodaj katalog</button>
             </form>
-            {% if parent_id is not null %}
-                <button id="redirectToDirectories" class="btn btn-secondary">
-                    Przejdź do katalogów
-                </button>
-            {% endif %}
+
             <hr>
         </div>
         <div class="card-body">
-            <!-- Lista istniejących katalogów -->
             <h3>Lista katalogów:</h3>
             <ul id="directoryList">
                 {% for directory in directories %}
-                    {% if directory.parent_id is null %}
-                        {# Wyświetlamy katalogi główne, gdzie parent_id jest null #}
-                        <li>
-                            <a href="index.php?page=directories&directory_id={{ directory.id }}" class="directory-link" data-directory-id="{{ directory.id }}">
-                                {{ directory.name }}
-                            </a>
-                            <button class="btn btn-danger btn-sm delete-directory" data-directory-id="{{ directory.id }}">Usuń</button>
-                
-                        </li>
-                    {% else %}
-                        {# Wyświetlamy podkatalogi, gdzie parent_id jest równy określonemu parent_id #}
-                        <li>
-                            <a href="index.php?page=directories&directory_id={{ directory.id }}" class="directory-link me-2" data-directory-id="{{ directory.id }}" >
-                                {{ directory.name }}
-                            </a>
-                            <button class="btn btn-danger btn-sm delete-directory" data-directory-id="{{ directory.id }}">Usuń</button>
-                        </li>
-                    {% endif %}  
+                    <li>
+                        <a href="index.php?page=directories&directory_id={{ directory.id }}" class="directory-link" data-directory-id="{{ directory.id }}">
+                            {{ directory.name }}
+                        </a>
+                        <button class="btn btn-danger btn-sm delete-directory" data-directory-id="{{ directory.id }}">Usuń</button>
+                    </li>
                 {% endfor %}
             </ul>
         </div>
         <div class="card-body">
             <h4>Lista plików:</h4>
-            
-                <button class="btn btn-secondary">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php?page=upload">Dodaj plik</a>
-                    </li>
-                </button>
+            <button class="btn btn-secondary">
+                <a class="nav-link" href="index.php?page=upload">Dodaj plik</a>
+            </button>
             <ul id="fileList">
-            {% for file in files %}
-                <li class="list-group-item">
-                    <a href="{{ file.path }}" target="_blank">{{ file.original_name }}</a>
-                    {% if file.description %}
-                    <p>Opis: {{ file.description }}</p>
-                    {% endif %}
-                    <a href="index.php?page=edit&edit={{ file.id }}">
-                        <button class="btn btn-sm btn-primary">Edytuj</button>
-                    </a>
-                    <a href="index.php?page=download&file_id={{ file.id }}">
-                        <button class="btn btn-sm btn-primary">Pobierz</button>
-                    </a>
-                    <br>
-                    <small class="text-muted">Wgrano: {{ file.upload_date }}</small>
-                </li>
-            {% endfor %}
+                {% for file in files %}
+                    <li class="list-group-item">
+                        <a href="{{ file.path }}" target="_blank">{{ file.original_name }}</a>
+                        {% if file.description %}
+                            <p>Opis: {{ file.description }}</p>
+                        {% endif %}
+                        <a href="index.php?page=edit&edit={{ file.id }}">
+                            <button class="btn btn-sm btn-primary">Edytuj</button>
+                        </a>
+                        <a href="index.php?page=download&file_id={{ file.id }}">
+                            <button class="btn btn-sm btn-primary">Pobierz</button>
+                        </a>
+                        <br>
+                        <small class="text-muted">Wgrano: {{ file.upload_date }}</small>
+                    </li>
+                {% endfor %}
             </ul>
         </div>
     </div>
@@ -87,141 +65,107 @@
 {% endblock %}
 
 {% block scripts %}
-
 <script>
-    document.getElementById('redirectToDirectories').addEventListener('click', function() {
-        window.location.href = 'index.php?page=directories';
-    });
-
-
     document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         const parentId = urlParams.get('directory_id');
         if (parentId) {
-            document.getElementById('parent_id').value = parentId; //tu ustawiamy parent_id 
+            document.getElementById('parent_id').value = parentId;
         }
 
-    });
-    
-    document.getElementById('addDirectoryForm').addEventListener('submit', function(event) {
-        event.preventDefault(); // Poprawne użycie nawiasu po event.preventDefault()
-    
-        var formData = new FormData(this);
-        formData.append('action', 'add_directory');
-    
-        fetch('directories.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateDirectoryList(); // Aktualizacja listy po dodaniu
-                console.log('Katalog dodany pomyslnie')
-                document.getElementById('addDirectoryForm').reset(); // Resetowanie formularza
-                location.reload();// Odświeżenie całej strony po dodaniu
-            } else {
-                console.error('Błąd:', data.error);
+        document.getElementById('addDirectoryForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            formData.append('action', 'add_directory');
+
+            fetch('directories.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateDirectoryList();
+                    document.getElementById('addDirectoryForm').reset();
+                } else {
+                    console.error('Błąd:', data.error);
+                }
+            })
+            .catch(error => console.error('Błąd:', error));
+        });
+
+        function updateDirectoryList() {
+            var formData = new FormData();
+            formData.append('action', 'get_directories');
+            var parentId = document.getElementById('parent_id').value;
+            if (parentId) {
+                formData.append('parent_id', parentId);
             }
-        })
-        .catch(error => console.error('Błąd:', error));
-    });
 
-    function updateDirectoryList() {
-        var formData = new FormData();
-        formData.append('action', 'get_directories');
-        //var parentId = document.getElementById('parent_id').value;
-        var parentId = directory.id;
-        if(parentId){
-            formData.append('parent_id', parentId);
+            fetch('directories.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    var directoryList = document.getElementById('directoryList');
+                    directoryList.innerHTML = '';
+                    data.directories.forEach(directory => {
+                        var li = document.createElement('li');
+                        var a = document.createElement('a');
+                        a.href = "index.php?page=directories&directory_id=" + directory.id;
+                        a.className = 'directory-link';
+                        a.textContent = directory.name;
+
+                        var deleteButton = document.createElement('button');
+                        deleteButton.className = 'btn btn-danger btn-sm delete-directory';
+                        deleteButton.dataset.directoryId = directory.id;
+                        deleteButton.textContent = 'Usuń';
+
+                        li.appendChild(a);
+                        li.appendChild(deleteButton);
+                        directoryList.appendChild(li);
+                    });
+
+                    attachDeleteEventListeners();
+                } else {
+                    console.error('Błąd:', data.error);
+                }
+            })
+            .catch(error => console.error('Błąd:', error));
         }
 
-        fetch('directories.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                var directoryList = document.getElementById('directoryList');
-                directoryList.innerHTML = ''; // Wyczyszczenie listy przed aktualizacją
-                data.directories.forEach(directory => {
-                    var li = document.createElement('li');
-                    var a = document.createElement('a');
-                    a.href = "index.php?page=directories&directory_id=" + directory.id; // Tutaj dodajemy ID katalogu
-                    a.className = 'directory-link';
-                    a.textContent = directory.name;
-
-                    // Dodanie ukrytego pola parent_id
-                    var hiddenParentId = document.createElement('input');
-                    hiddenParentId.type = 'hidden';
-                    hiddenParentId.id = 'parent_id';
-                    hiddenParentId.name = 'parent_id';
-                    hiddenParentId.value = directory.parent_id; // Ustawienie wartości parent_id
-
-                    var deleteButton = document.createElement('button');
-                    deleteButton.className = 'btn btn-danger btn-sm delete-directory';
-                    deleteButton.dataset.directoryId = directory.id;
-                    deleteButton.textContent = 'Usuń';
-
-                    li.appendChild(a);
-                    li.appendChild(hiddenParentId); // Dodanie ukrytego pola parent_id
-                    li.appendChild(deleteButton);
-                    directoryList.appendChild(li); // Dodanie nowego elementu do listy
+        function attachDeleteEventListeners() {
+            document.querySelectorAll('.delete-directory').forEach(button => {
+                button.addEventListener('click', function() {
+                    var directoryId = this.dataset.directoryId;
+                    deleteDirectory(directoryId);
                 });
-                    
-                // Dodanie event listenerów dla nowych przycisków usuwania
-                attachDeleteEventListeners();
-            } else {
-                console.error('Błąd:', data.error);
-            }
-        })
-        .catch(error => console.error('Błąd:', error));
-    }
+            });
+        }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        attachDeleteEventListeners();
+        function deleteDirectory(directoryId) {
+            var formData = new FormData();
+            formData.append('action', 'delete_directory');
+            formData.append('directory_id', directoryId);
+
+            fetch('directories.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateDirectoryList();
+                } else {
+                    console.error('Błąd:', data.error);
+                }
+            })
+            .catch(error => console.error('Błąd:', error));
+        }
+
         updateDirectoryList();
     });
-    
-    function attachDeleteEventListeners() {
-        document.querySelectorAll('.delete-directory').forEach(button => {
-            button.addEventListener('click', function() {
-                var directoryId = this.dataset.directoryId;
-                deleteDirectory(directoryId);
-            });
-        });
-    }
-
-
-    function deleteDirectory(directoryId) {
-        var formData = new FormData();
-        formData.append('action', 'delete_directory');
-        formData.append('directory_id', directoryId);
-
-        fetch('directories.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateDirectoryList(); // Aktualizacja listy po usunięciu
-            } else {
-                console.error('Błąd:', data.error);
-            }
-        })
-        .catch(error => console.error('Błąd:', error));
-    }
-
-    // Wywołanie funkcji updateDirectoryList() na start, aby załadować listę katalogów
-    updateDirectoryList();
-
-    document.getElementById('redirectToDirectories').addEventListener('click', function() {
-        window.location.href = 'index.php?page=directories';
-    });
-
 </script>
-
-
 {% endblock %}

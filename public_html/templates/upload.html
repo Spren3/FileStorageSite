@@ -24,6 +24,7 @@
             <div class="mb-3">
                 <label for="directory_id" class="form-label">Wybierz katalog:</label>
                 <select name="directory_id" id="directory_id" class="form-control" required>
+                    <option value="">Wybierz katalog</option>
                     {% for directory in directories %}
                         <option value="{{ directory.id }}">{{ directory.name }}</option>
                     {% endfor %}
@@ -124,4 +125,4 @@
     });
     </script>
 
-    {% endblock %}
+{% endblock %}

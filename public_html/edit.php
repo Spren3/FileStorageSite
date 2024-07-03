@@ -55,24 +55,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $description = $_POST['description'];
         $is_public = isset($_POST['is_public']) ? 1 : 0;
 
-        $stmt = $db->prepare('UPDATE files SET original_name = :original_name, description = :description, is_public = :is_public WHERE id = :id');
-        $stmt->bindParam(':original_name', $original_name, PDO::PARAM_STR);
-        $stmt->bindParam(':description', $description, PDO::PARAM_STR);
-        $stmt->bindParam(':is_public', $is_public, PDO::PARAM_INT);
+        // Wyodrębnij aktualną nazwę pliku z rozszerzeniem
+        $stmt = $db->prepare('SELECT original_name FROM files WHERE id = :id');
         $stmt->bindParam(':id', $file_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $file = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($file) {
+            $current_name = $file['original_name'];
+            $file_extension = pathinfo($current_name, PATHINFO_EXTENSION); // Pobierz aktualne rozszerzenie
+            $new_name = pathinfo($original_name, PATHINFO_FILENAME) . '.' . $file_extension; // Zaktualizowana nazwa pliku z oryginalnym rozszerzeniem
 
-        if ($stmt->execute()) {
-            $message = 'File updated successfully.';
-            $messageType = 'success';
+            $stmt = $db->prepare('UPDATE files SET original_name = :original_name, description = :description, is_public = :is_public WHERE id = :id');
+            $stmt->bindParam(':original_name', $new_name, PDO::PARAM_STR);
+            $stmt->bindParam(':description', $description, PDO::PARAM_STR);
+            $stmt->bindParam(':is_public', $is_public, PDO::PARAM_INT);
+            $stmt->bindParam(':id', $file_id, PDO::PARAM_INT);
+
+            if ($stmt->execute()) {
+                $message = 'File updated successfully.';
+                $messageType = 'success';
+            } else {
+                $message = 'Error updating file.';
+                $messageType = 'error';
+            }
+            header("Location: /");
+            print TwigHelper::getInstance()->render('edit.html', [
+                'message' => $message,
+                'messageType' => $messageType,
+            ]);
         } else {
-            $message = 'Error updating file.';
+            $message = 'File not found.';
             $messageType = 'error';
+            print TwigHelper::getInstance()->render('edit.html', [
+                'message' => $message,
+                'messageType' => $messageType,
+            ]);
         }
-        header("Location: /");
-        print TwigHelper::getInstance()->render('edit.html', [
-            'message' => $message,
-            'messageType' => $messageType,
-        ]);
     } else {
         $message = 'Invalid file ID.';
         $messageType = 'error';

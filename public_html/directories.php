@@ -6,7 +6,6 @@ error_reporting(E_ALL);
 // Połączenie z bazą danych SQLite
 function connectToDatabase()
 {
-    //$pdo = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');
     $pdo = new PDO('sqlite:D:\GitHub Desktop\FileStorageSite\instance\php.sqlite');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     return $pdo;
@@ -16,7 +15,7 @@ function connectToDatabase()
 function addDirectory($pdo, $name, $parent_id = null)
 {
     if ($parent_id === '') {
-        $parent_id = null; // Ustawienie na NULL, jeśli $parent_id jest pusty (brak wartości w formularzu)
+        $parent_id = null;
     }
 
     $stmt = $pdo->prepare("INSERT INTO directories (name, parent_id) VALUES (?, ?)");
@@ -38,7 +37,6 @@ function getDirectories($pdo, $parent_id = null)
 // Funkcja do usuwania katalogu
 function deleteDirectory($pdo, $directory_id)
 {
-    // Najpierw znajdź wszystkie podkatalogi i usuń je rekurencyjnie
     $stmt = $pdo->prepare("SELECT id FROM directories WHERE parent_id = ?");
     $stmt->execute([$directory_id]);
     $subdirectories = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -47,7 +45,6 @@ function deleteDirectory($pdo, $directory_id)
         deleteDirectory($pdo, $subdirectory['id']);
     }
 
-    // Następnie usuń sam katalog
     $stmt = $pdo->prepare("DELETE FROM directories WHERE id = ?");
     $stmt->execute([$directory_id]);
 }
@@ -65,12 +62,10 @@ function getParentDirectoryId($pdo, $directory_id)
 {
     $stmt = $pdo->prepare("SELECT parent_id FROM directories WHERE id = ?");
     $stmt->execute([$directory_id]);
-    $parent_idTHIS = $stmt->fetchColumn();
-    return $parent_idTHIS;
+    $parent_id = $stmt->fetchColumn();
+    return $parent_id;
 }
 
-
-// Obsługa żądań AJAX
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'];
 
@@ -86,12 +81,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
         }
     } elseif ($action === 'get_directories') {
-        $parent_id = $_POST['directory_id'] ?? null;
+        $parent_id = $_POST['parent_id'] ?? null;
         try {
             $pdo = connectToDatabase();
             $directories = getDirectories($pdo, $parent_id);
             echo json_encode(['success' => true, 'directories' => $directories]);
-
         } catch (PDOException $e) {
             echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
         }
@@ -101,7 +95,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo = connectToDatabase();
             deleteDirectory($pdo, $directory_id);
             echo json_encode(['success' => true]);
-
         } catch (PDOException $e) {
             echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
         }
@@ -111,7 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo = connectToDatabase();
             $files = getFiles($pdo, $directory_id);
             echo json_encode(['success' => true, 'files' => $files]);
-
         } catch (PDOException $e) {
             echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
         }
@@ -119,21 +111,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
-// Pobieranie listy katalogów na potrzeby renderowania strony
 $parent_id = isset($_GET['directory_id']) && !empty($_GET['directory_id']) ? $_GET['directory_id'] : null;
 
 try {
     $pdo = connectToDatabase();
     $directories = getDirectories($pdo, $parent_id);
-    $files = []; // Inicjalizacja zmiennej $files jako pusta tablica
+    $files = [];
     if (!empty($parent_id)) {
-        $files = getFiles($pdo, $parent_id); // Pobranie plików dla określonego katalogu $parent_id
+        $files = getFiles($pdo, $parent_id);
     }
 } catch (PDOException $e) {
     die("Błąd bazy danych: " . $e->getMessage());
 }
 
-// Przykład użycia funkcji getParentDirectoryId
 foreach ($directories as &$directory) {
     $directory['parent_directory_id'] = getParentDirectoryId($pdo, $directory['id']);
 }
@@ -141,7 +131,7 @@ foreach ($directories as &$directory) {
 print TwigHelper::getInstance()->render('directories.html', [
     'directories' => $directories,
     'parent_id' => $parent_id,
-    'files' => $files, // Przekazanie listy plików do szablonu Twig
+    'files' => $files,
     'direction' => getParentDirectoryId($pdo, $parent_id)
-
 ]);
+?>
