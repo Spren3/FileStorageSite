@@ -37,7 +37,17 @@ function getDirectories($pdo, $parent_id = null)
 
 // Funkcja do usuwania katalogu
 function deleteDirectory($pdo, $directory_id)
-{
+{ 
+    // Najpierw znajdź wszystkie podkatalogi i usuń je rekurencyjnie
+    $stmt = $pdo->prepare("SELECT id FROM directories WHERE parent_id = ?");
+    $stmt->execute([$directory_id]);
+    $subdirectories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    foreach ($subdirectories as $subdirectory) {
+        deleteDirectory($pdo, $subdirectory['id']);
+    }
+    
+    // Następnie usuń sam katalog
     $stmt = $pdo->prepare("DELETE FROM directories WHERE id = ?");
     $stmt->execute([$directory_id]);
 }

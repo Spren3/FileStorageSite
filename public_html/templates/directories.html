@@ -7,8 +7,9 @@
             <h2 class="card-title">Zarządzanie katalogami</h2>
 
             <!-- Przycisk do przewijania do góry -->
-            <button class="btn btn-secondary mb-3" id="scrollToTopBtn">Przewiń do góry</button>
-
+             {% if parent_id is not null %}
+                <button class="btn btn-secondary mb-3" id="scrollToTopBtn">Przewiń do góry</button>
+            {% endif %}
 
             <!-- Formularz dodawania nowego katalogu -->
             <form id="addDirectoryForm">
@@ -24,11 +25,10 @@
                 Przejdź do katalogów
             </button>
 
-
             <hr>
 
             <!-- Lista istniejących katalogów -->
-            <h3>Lista istniejących katalogów:</h3>
+            <h3>Lista katalogów:</h3>
             <ul id="directoryList">
                 {% for directory in directories %}
                 {% if directory.parent_id is null %}
@@ -36,7 +36,7 @@
                     <li>
                         <a href="index.php?page=directories&directory_id={{ directory.id }}" class="directory-link" data-directory-id="{{ directory.id }}">
                             {{ directory.name }}
-                            <a type="hidden" id="direction" value={{ directory.parent_id }}</a>
+                            {#<input type="hidden" id="direction" value={{ directory.parent_id }}>#}
                         </a>
                         <button class="btn btn-danger btn-sm delete-directory" data-directory-id="{{ directory.id }}">Usuń</button>
                 
@@ -44,14 +44,15 @@
                 {% else %}
                     {# Wyświetlamy podkatalogi, gdzie parent_id jest równy określonemu parent_id #}
                     <li>
-                        <a href="index.php?page=directories&directory_id={{ directory.id }}" class="directory-link" data-directory-id="{{ directory.id }}">
+                        <a href="index.php?page=directories&directory_id={{ directory.id }}" class="directory-link" data-directory-id="{{ directory.id }}" >
                             {{ directory.name }}
-                            <a type="hidden" id="direction" value={{ directory.parent_id }}</a>
+                            <input type="hidden" id="direction" value={{ directory.parent_id }}>
                         </a>
                         <button class="btn btn-danger btn-sm delete-directory" data-directory-id="{{ directory.id }}">Usuń</button>
-                
                     </li>
+
                 {% endif %}
+            
             {% endfor %}
             
             </ul>
@@ -73,16 +74,19 @@
         const urlParams = new URLSearchParams(window.location.search);
         const parentId = urlParams.get('directory_id');
         if (parentId) {
-            document.getElementById('parent_id').value = parentId || NULL; //tu ustawiamy parent_id
+            document.getElementById('parent_id').value = parentId; //tu ustawiamy parent_id 
         }
 
-        document.getElementById('scrollToTopBtn').addEventListener('click', function() {
-            var x = document.getElementById('direction');
-            console.log(x);
-            window.location.href = 'index.php?page=directories&directory_id='+ x;
-        });
-    
     });
+    document.getElementById('scrollToTopBtn').addEventListener('click', function(){
+         // Pobierz wartość parent_id z ukrytego pola direction
+        var parentId = document.getElementById('direction').value;
+    
+        // Przekieruj użytkownika do nadkatalogu z odpowiednim parent_id
+        window.location.href = 'index.php?page=directories&directory_id=' + parentId;
+    }); 
+
+    
 
 
     document.getElementById('addDirectoryForm').addEventListener('submit', function(event) {
@@ -161,6 +165,11 @@
         })
         .catch(error => console.error('Błąd:', error));
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        attachDeleteEventListeners();
+        updateDirectoryList();
+    });
     
     function attachDeleteEventListeners() {
         document.querySelectorAll('.delete-directory').forEach(button => {
