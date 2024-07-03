@@ -24,9 +24,9 @@
             <button id="redirectToDirectories" class="btn btn-secondary">
                 Przejdź do katalogów
             </button>
-
             <hr>
-
+        </div>
+        <div class="card-body">
             <!-- Lista istniejących katalogów -->
             <h3>Lista katalogów:</h3>
             <ul id="directoryList">
@@ -50,14 +50,41 @@
                         </a>
                         <button class="btn btn-danger btn-sm delete-directory" data-directory-id="{{ directory.id }}">Usuń</button>
                     </li>
-
-                {% endif %}
-            
+                {% endif %}  
             {% endfor %}
-            
             </ul>
-
         </div>
+        <div class="card-body">
+            <h4>Lista plików:</h4>
+            
+                <button class="btn btn-secondary">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.php?page=upload">Dodaj plik</a>
+                    </li>
+                </button>
+            <ul id="fileList">
+                {% for file in files %}
+                <li class="list-group-item">
+                    <a href="{{ file.path }}" target="_blank">{{ file.original_name }}</a>
+                    {% if file.description %}
+                    <p>Opis: {{ file.description }}</p>
+                    {% endif %}
+                    <a href="index.php?page=edit&edit={{ file.id }}">
+                        <button class="btn btn-sm btn-primary">Edytuj</button>
+                    </a>
+                    <a href="index.php?page=download&file_id={{ file.id }}">
+                        <button class="btn btn-sm btn-primary">Pobierz</button>
+                    </a>
+                    <br>
+                    <small class="text-muted">Wgrano: {{ file.upload_date }}</small>
+                </li>
+                
+            {% endfor %}
+
+            </ul>
+        
+        </div>
+
     </div>
 </div>
 {% endblock %}
@@ -144,6 +171,12 @@
                     hiddenParentId.id = 'parent_id';
                     hiddenParentId.name = 'parent_id';
                     hiddenParentId.value = directory.parent_id; // Ustawienie wartości parent_id
+
+                    var li = document.createElement('li');
+                    var a = document.createElement('a');
+                    //a.href = "index.php?page=upload&directory_id=" + directory.id; // Tutaj dodajemy ID katalogu
+                    //a.className = 'directory-link';
+                   // a.textContent = directory.name;
 
 
                     var deleteButton = document.createElement('button');

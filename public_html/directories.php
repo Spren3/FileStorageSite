@@ -37,19 +37,27 @@ function getDirectories($pdo, $parent_id = null)
 
 // Funkcja do usuwania katalogu
 function deleteDirectory($pdo, $directory_id)
-{ 
+{
     // Najpierw znajdź wszystkie podkatalogi i usuń je rekurencyjnie
     $stmt = $pdo->prepare("SELECT id FROM directories WHERE parent_id = ?");
     $stmt->execute([$directory_id]);
     $subdirectories = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     foreach ($subdirectories as $subdirectory) {
         deleteDirectory($pdo, $subdirectory['id']);
     }
-    
+
     // Następnie usuń sam katalog
     $stmt = $pdo->prepare("DELETE FROM directories WHERE id = ?");
     $stmt->execute([$directory_id]);
+}
+
+// Funkcja do pobierania listy plików dla danego katalogu
+function getFiles($pdo, $directory_id)
+{
+    $stmt = $pdo->prepare("SELECT * FROM files WHERE directory_id = ?");
+    $stmt->execute([$directory_id]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // Obsługa żądań AJAX
@@ -59,7 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add_directory' && !empty($_POST['directory_name'])) {
         $directoryName = $_POST['directory_name'];
         $parent_id = $_POST['parent_id'] ?? null;
-        //$parent_id = isset($_GET['directory_id']) && !empty($_GET['directory_id']) ? $_GET['directory_id'] : null;
 
         try {
             $pdo = connectToDatabase();
@@ -88,8 +95,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
         }
+    } elseif ($action === 'get_files' && isset($_POST['directory_id'])) {
+        $directory_id = $_POST['directory_id'];
+        try {
+            $pdo = connectToDatabase();
+            $files = getFiles($pdo, $directory_id);
+            echo json_encode(['success' => true, 'files' => $files]);
+
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'error' => 'Błąd bazy danych: ' . $e->getMessage()]);
+        }
     }
-   exit(); 
+    exit();
 }
 
 // Pobieranie listy katalogów na potrzeby renderowania strony
@@ -98,11 +115,16 @@ $parent_id = isset($_GET['directory_id']) && !empty($_GET['directory_id']) ? $_G
 try {
     $pdo = connectToDatabase();
     $directories = getDirectories($pdo, $parent_id);
+    $files = []; // Inicjalizacja zmiennej $files jako pusta tablica
+    if (!empty($parent_id)) {
+        $files = getFiles($pdo, $parent_id); // Pobranie plików dla określonego katalogu $parent_id
+    }
 } catch (PDOException $e) {
     die("Błąd bazy danych: " . $e->getMessage());
 }
 
 print TwigHelper::getInstance()->render('directories.html', [
     'directories' => $directories,
-    'parent_id' => $parent_id
+    'parent_id' => $parent_id,
+    'files' => $files // Przekazanie listy plików do szablonu Twig
 ]);

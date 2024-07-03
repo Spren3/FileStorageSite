@@ -21,6 +21,14 @@
                 <label for="description" class="form-label">Opis:</label>
                 <input type="text" name="description" id="description" class="form-control">
             </div>
+            <div class="mb-3">
+                <label for="directory_id" class="form-label">Wybierz katalog:</label>
+                <select name="directory_id" id="directory_id" class="form-control" required>
+                    {% for directory in directories %}
+                        <option value="{{ directory.id }}">{{ directory.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="form-check mb-3">
                 <input type="checkbox" name="is_public" id="is_public" class="form-check-input">
                 <label for="is_public" class="form-check-label">Czy plik ma być publiczny?</label>
