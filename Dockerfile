@@ -2,6 +2,7 @@ FROM php:8.3.8-apache
 
 COPY my-apache-conf /etc/apache2/conf-enabled/
 RUN a2enmod rewrite
+RUN chown -R www-data:www-data /var/www/html
 
 WORKDIR /var/www/html
 
