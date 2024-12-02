@@ -30,6 +30,6 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
-**/vendor
+#**/vendor
 LICENSE
 README.md

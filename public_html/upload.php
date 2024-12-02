@@ -19,13 +19,12 @@ if (!file_exists($uploadDir)) {
 // Pobranie wszystkich folderów z bazy danych
 try {
     //$db = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');
-    $db = new PDO('sqlite:D:\GitHub Desktop\FileStorageSite\instance\php.sqlite');
+    $db = new PDO('sqlite:instance/php.sqlite');
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $stmt = $db->query("SELECT id, name FROM directories ORDER BY name ASC");
     $directories = $stmt->fetchAll(PDO::FETCH_ASSOC);
     array_unshift($directories, ['id' => null, 'name' => 'NULL']);
-    
 } catch (PDOException $e) {
     $message = 'Database error: ' . $e->getMessage();
     $messageType = 'error';
@@ -43,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
     $uploadDate = date('Y-m-d H:i:s');
     $savedName = generateSessionId() . '.' . pathinfo($originalName, PATHINFO_EXTENSION);
     $path = $uploadDir . $savedName;
-    
+
     // Pobranie directory_id z formularza POST lub parametrów GET
     $directoryId = isset($_POST['directory_id']) ? $_POST['directory_id'] : (isset($_GET['directory_id']) ? $_GET['directory_id'] : null);
 
@@ -53,8 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
     } else {
         if (move_uploaded_file($_FILES['file']['tmp_name'], $path)) {
             try {
-                $db = new PDO('sqlite:D:\GitHub Desktop\FileStorageSite\instance\php.sqlite');                
-                //$db = new PDO('sqlite:D:\GitHub Desktop\FileStorageSite\instance\php.sqlite');
+                $db = new PDO('sqlite:instance/php.sqlite');
+                //$db = new PDO('sqlite:instance/php.sqlite');
                 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
                 $stmt = $db->prepare("INSERT INTO files (original_name, description, upload_date, saved_name, path, is_public, directory_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
@@ -78,4 +77,3 @@ print TwigHelper::getInstance()->render('upload.html', [
     'messageType' => $messageType ?? null,
     'directories' => $directories ?? null
 ]);
-

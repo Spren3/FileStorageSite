@@ -1,11 +1,13 @@
 <?php
-if (!defined('IN_INDEX')) { exit("This file can only be included in index.php."); }
+if (!defined('IN_INDEX')) {
+    exit("This file can only be included in index.php.");
+}
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-$db = new PDO('sqlite:D:\GitHub Desktop\FileStorageSite\instance\php.sqlite');
+$db = new PDO('sqlite:instance/php.sqlite');
 //$db = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -13,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['delete']) && isset($_POST['file_id']) && intval($_POST['file_id']) > 0) {
         // Usuwanie pliku
         $file_id = intval($_POST['file_id']);
-        
+
         $stmt = $db->prepare('SELECT path FROM files WHERE id = :id');
         $stmt->bindParam(':id', $file_id, PDO::PARAM_INT);
         $stmt->execute();
@@ -47,7 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'message' => $message,
             'messageType' => $messageType,
         ]);
-
     } else if (isset($_POST['file_id']) && intval($_POST['file_id']) > 0) {
         // Aktualizacja pliku
         $file_id = intval($_POST['file_id']);
@@ -60,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->bindParam(':id', $file_id, PDO::PARAM_INT);
         $stmt->execute();
         $file = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if ($file) {
             $current_name = $file['original_name'];
             $file_extension = pathinfo($current_name, PATHINFO_EXTENSION); // Pobierz aktualne rozszerzenie
@@ -141,4 +142,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ]);
     }
 }
-?>
