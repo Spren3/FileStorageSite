@@ -9,7 +9,7 @@ $fileId = $_GET['file_id'];
 
 try {
     //$db = new PDO('sqlite:C:\Users\Thinkpad\Documents\GitHub\FileStorageSite\instance\php.sqlite');
-    $db = new PDO('sqlite:D:\GitHub Desktop\FileStorageSite\instance\php.sqlite');
+    $db = new PDO('sqlite:instance/php.sqlite');
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Pobranie informacji o pliku z bazy danych
@@ -23,9 +23,9 @@ try {
 
     $filePath = 'uploads/' . $file['saved_name'];
     // Sprawdzenie, czy plik fizycznie istnieje
-   if (!file_exists($filePath)) {
-       die("Plik nie istnieje na serwerze.");
-   }
+    if (!file_exists($filePath)) {
+        die("Plik nie istnieje na serwerze.");
+    }
 
     // Sprawdzenie uprawnień użytkownika
     if (!$file['is_public'] && !isset($_SESSION['id'])) {
@@ -46,12 +46,12 @@ try {
 
     readfile($filePath);
     exit();
-
 } catch (PDOException $e) {
     die("Błąd bazy danych: " . $e->getMessage());
 }
 
-function download($file, $db, $filePath) {
+function download($file, $db, $filePath)
+{
     //$filePath = 'uploads/' . $file['saved_name']; // Upewnij się, że ścieżka jest poprawna i pliki są przechowywane poza publicznym katalogiem
     $filepath = $file['path'];
     // Ustawienie odpowiednich nagłówków HTTP i wysłanie pliku

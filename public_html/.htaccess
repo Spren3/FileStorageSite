@@ -1,6 +1,6 @@
 RewriteEngine On
 
-RewriteRule ^([a-zA-Z0-9-_]+)$ public_html/index.php?page=$1 [NC,L,QSA]
+RewriteRule ^([a-zA-Z0-9-_]+)$ /var/www/html/index.php?page=$1 [NC,L,QSA]
 RewriteRule ^([a-zA-Z0-9-_]+)\/delete\/([0-9]+)$ index.php?page=$1&delete=$2 [NC,L,QSA]
 RewriteRule ^([a-zA-Z0-9-_]+)\/add$ index.php?page=$1&add= [NC,L,QSA]
 RewriteRule ^([a-zA-Z0-9-_]+)\/add\/([0-9]+)$ index.php?page=$1&add=$2 [NC,L,QSA]
@@ -8,7 +8,7 @@ RewriteRule ^([a-zA-Z0-9-_]+)\/show\/([0-9]+)$ index.php?page=$1&show=$2 [NC,L,Q
 RewriteRule ^([a-zA-Z0-9-_]+)\/edit\/([0-9]+)$ index.php?page=$1&edit=$2 [NC,L,QSA]
 
 Options -Indexes
-Deny from all
+# Deny from all
 
 RewriteCond %{REQUEST_FILENAME}.php -f
 RewriteRule !.*\.php$ %{REQUEST_FILENAME}.php [QSA,L]

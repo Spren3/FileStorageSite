@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 // Połączenie z bazą danych SQLite
 function connectToDatabase()
 {
-    $pdo = new PDO('sqlite:D:\GitHub Desktop\FileStorageSite\instance\php.sqlite');
+    $pdo = new PDO('sqlite:instance/php.sqlite');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     return $pdo;
 }
@@ -134,4 +134,3 @@ print TwigHelper::getInstance()->render('directories.html', [
     'files' => $files,
     'direction' => getParentDirectoryId($pdo, $parent_id)
 ]);
-?>
